@@ -52,4 +52,17 @@ class AnotacaoHelper {
     List? anotacoes = await bancoDB?.rawQuery(sql);
     return anotacoes;
   }
+
+  Future<int?> atualizarNota(Notes nota) async {
+    var bancoDB = await _db;
+    Map<String, dynamic> map = {
+      "id": nota.id,
+      "titulo": nota.titulo,
+      "descricao": nota.descricao,
+      "data": nota.data
+    };
+    return await bancoDB
+        ?.update("notes", map, where: "id = ?", whereArgs: [nota.id]);
+    //.updade("notes", nota.toMap(), where: "id = ?", whereArgs: [nota.id]);
+  }
 }

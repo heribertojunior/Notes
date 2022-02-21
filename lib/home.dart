@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:notes/helper/anotacao_helper.dart';
 import 'package:notes/model/notes.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -14,14 +16,22 @@ class _HomeState extends State<Home> {
   TextEditingController _descricaoController = TextEditingController();
   var _db = AnotacaoHelper();
   List<Notes> anotacoes = <Notes>[];
-  _exibitTelaCad() {
+  _exibitTelaCad({Notes? nota}) {
+    String namePage;
+    if (nota == null) {
+      namePage = "Adicionar";
+    } else {
+      _tituloController.text = nota.titulo.toString();
+      _descricaoController.text = nota.descricao.toString();
+      namePage = "Editar";
+    }
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           //  backgroundColor: Colors.lightBlue,
           title: Text(
-            "Adicionar Anotação",
+            "${namePage} Anotação",
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           content: Column(
@@ -49,6 +59,7 @@ class _HomeState extends State<Home> {
           actions: [
             FlatButton(
               onPressed: () {
+                
                 return Navigator.pop(context);
               },
               child: Text(
@@ -59,11 +70,11 @@ class _HomeState extends State<Home> {
             ),
             FlatButton(
               onPressed: () {
-                _salvarNote();
+                _salvarNote(nota: nota);
                 return Navigator.pop(context);
               },
               child: Text(
-                "Salvar",
+                "${namePage}",
                 style: TextStyle(
                     color: Colors.lightBlue, fontWeight: FontWeight.bold),
               ),
@@ -86,23 +97,34 @@ class _HomeState extends State<Home> {
       anotacoes = listaTemp;
     });
     listaTemp = [];
-    print("Lista Notes: " + anotacoesReq.toString());
+    //print("Lista Notes: " + anotacoesReq.toString());
   }
 
-  _salvarNote() async {
+  _salvarNote({Notes? nota}) async {
     String titulo = _tituloController.text;
     String descricao = _descricaoController.text;
 
-    Notes notes = Notes(titulo, descricao, DateTime.now().toString());
-    int? res = await _db.salvarNote(notes);
-    print("salvar nota: " + res.toString());
+    if (nota == null) {
+      Notes notes = Notes(titulo, descricao, DateTime.now().toString());
+      int? res = await _db.salvarNote(notes);
+    } else {
+      nota.titulo = titulo;
+      nota.descricao = descricao;
+      int? res = await _db.atualizarNota(nota);
+    }
+
+    //print("salvar nota: " + res.toString());
     _tituloController.clear();
     _descricaoController.clear();
     _recuperarNotes();
   }
 
   _dataFormater(String data) {
-    
+    initializeDateFormatting("pt_BR");
+    var formater = DateFormat("d/M/y");
+    DateTime dataConvertida = DateTime.parse(data);
+    String dataFormatada = formater.format(dataConvertida);
+    return dataFormatada;
   }
 
   @override
@@ -137,6 +159,33 @@ class _HomeState extends State<Home> {
                     title: Text(item.titulo.toString()),
                     subtitle: Text(
                         "${_dataFormater(item.data.toString())} - ${item.descricao}"),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            _exibitTelaCad(nota: item);
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.only(right: 16),
+                            child: Icon(
+                              Icons.edit,
+                              color: Colors.lightBlue,
+                            ),
+                          ),
+                        ),
+                        GestureDetector(
+                          onDoubleTap: () {},
+                          child: Padding(
+                            padding: EdgeInsets.only(right: 0),
+                            child: Icon(
+                              Icons.remove_circle_outline,
+                              color: Colors.lightBlue,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 );
               },
