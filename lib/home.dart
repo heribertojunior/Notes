@@ -19,6 +19,8 @@ class _HomeState extends State<Home> {
   _exibitTelaCad({Notes? nota}) {
     String namePage;
     if (nota == null) {
+      _tituloController.text = " ";
+      _descricaoController.text = " ";
       namePage = "Adicionar";
     } else {
       _tituloController.text = nota.titulo.toString();
@@ -59,7 +61,6 @@ class _HomeState extends State<Home> {
           actions: [
             FlatButton(
               onPressed: () {
-                
                 return Navigator.pop(context);
               },
               child: Text(
@@ -75,6 +76,69 @@ class _HomeState extends State<Home> {
               },
               child: Text(
                 "${namePage}",
+                style: TextStyle(
+                    color: Colors.lightBlue, fontWeight: FontWeight.bold),
+              ),
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  _excluir(Notes nota) {
+    _tituloController.text = nota.titulo.toString();
+    _descricaoController.text = nota.descricao.toString();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          //  backgroundColor: Colors.lightBlue,
+          title: Text(
+            "Excluir Anotação",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _tituloController,
+                autofocus: true,
+                decoration: InputDecoration(
+                    labelStyle: TextStyle(fontWeight: FontWeight.bold),
+                    labelText: "Titulo",
+                    hintStyle: TextStyle(fontWeight: FontWeight.bold),
+                    hintText: "Digite titulo..."),
+              ),
+              TextField(
+                controller: _descricaoController,
+                decoration: InputDecoration(
+                    labelStyle: TextStyle(fontWeight: FontWeight.bold),
+                    labelText: "Descrição",
+                    hintStyle: TextStyle(fontWeight: FontWeight.bold),
+                    hintText: "Digite Descrição..."),
+              ),
+            ],
+          ),
+          actions: [
+            FlatButton(
+              onPressed: () {
+                return Navigator.pop(context);
+              },
+              child: Text(
+                "Cancelar",
+                style:
+                    TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+              ),
+            ),
+            FlatButton(
+              onPressed: () {
+                int? id = nota.id?.abs();
+                _excluirNote(id!);
+                return Navigator.pop(context);
+              },
+              child: Text(
+                "Excluir",
                 style: TextStyle(
                     color: Colors.lightBlue, fontWeight: FontWeight.bold),
               ),
@@ -127,6 +191,11 @@ class _HomeState extends State<Home> {
     return dataFormatada;
   }
 
+  _excluirNote(int id) async {
+    _db.removerNote(id);
+    _recuperarNotes();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -175,7 +244,9 @@ class _HomeState extends State<Home> {
                           ),
                         ),
                         GestureDetector(
-                          onDoubleTap: () {},
+                          onDoubleTap: () {
+                            _excluir(item);
+                          },
                           child: Padding(
                             padding: EdgeInsets.only(right: 0),
                             child: Icon(

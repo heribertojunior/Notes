@@ -65,4 +65,9 @@ class AnotacaoHelper {
         ?.update("notes", map, where: "id = ?", whereArgs: [nota.id]);
     //.updade("notes", nota.toMap(), where: "id = ?", whereArgs: [nota.id]);
   }
+
+  Future<int?> removerNote(int id) async {
+    var bancoDB = await _db;
+    return await bancoDB?.delete("notes", where: "id = ?", whereArgs: [id]);
+  }
 }
